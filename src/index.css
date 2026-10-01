@@ -1,0 +1,11 @@
+:root { --ink: #17324d; --muted: #6d7c8b; --paper: #f7f8f5; --surface: #fff; --line: #dfe6e8; --teal: #087f82; --teal-soft: #e1f1ef; --yellow: #f1c75b; font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; color: var(--ink); background: var(--paper); font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
