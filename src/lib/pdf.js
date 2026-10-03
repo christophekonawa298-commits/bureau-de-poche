@@ -3,7 +3,6 @@ import { jsPDF } from 'jspdf'
 const pageWidth = 595.28
 const pageHeight = 841.89
 const margin = 40
-const currencyFormatter = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 function formatDate(value) {
   if (!value) return 'Non définie'
@@ -13,7 +12,12 @@ function formatDate(value) {
 }
 
 function formatMoney(value, currency = 'XAF') {
-  return `${currencyFormatter.format(Number(value ?? 0))} ${currency}`
+  const amount = Number(value ?? 0)
+  const formatted = Number.isInteger(amount)
+    ? amount.toLocaleString('fr-FR', { maximumFractionDigits: 0 })
+    : amount.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+  return `${formatted.replace(/\u202F/g, ' ').replace(/\u00A0/g, ' ').replace(/\s+/g, ' ')} ${currency}`
 }
 
 async function fetchImageDataUrl(url) {
@@ -36,22 +40,24 @@ async function fetchImageDataUrl(url) {
 
 function drawTable(doc, rows, startY, leftX) {
   const tableLeft = leftX
-  const columns = [
-    { key: 'description', width: 245 },
-    { key: 'quantity', width: 60 },
-    { key: 'unitPrice', width: 90 },
-    { key: 'amount', width: 100 },
-  ]
+  const tableWidth = 440
+  const descriptionWidth = 220
+  const quantityWidth = 55
+  const unitPriceWidth = 90
+  const amountWidth = 75
+  const quantityX = tableLeft + descriptionWidth + quantityWidth / 2
+  const unitPriceX = tableLeft + descriptionWidth + quantityWidth + unitPriceWidth / 2
+  const amountX = tableLeft + descriptionWidth + quantityWidth + unitPriceWidth + amountWidth
 
   const headerY = startY
   doc.setFillColor(242, 245, 247)
-  doc.roundedRect(tableLeft, headerY, 440, 22, 4, 4, 'F')
+  doc.roundedRect(tableLeft, headerY, tableWidth, 22, 4, 4, 'F')
   doc.setFontSize(9)
   doc.setTextColor(26, 32, 44)
   doc.text('Désignation', tableLeft + 8, headerY + 14)
-  doc.text('Qté', tableLeft + 260, headerY + 14, { align: 'center' })
-  doc.text('PU', tableLeft + 330, headerY + 14, { align: 'center' })
-  doc.text('Montant', tableLeft + 440, headerY + 14, { align: 'right' })
+  doc.text('Qté', quantityX, headerY + 14, { align: 'center' })
+  doc.text('PU', unitPriceX, headerY + 14, { align: 'center' })
+  doc.text('Montant', amountX - 8, headerY + 14, { align: 'right' })
 
   let currentY = headerY + 28
   rows.forEach((row) => {
@@ -60,17 +66,17 @@ function drawTable(doc, rows, startY, leftX) {
       currentY = margin
     }
 
-    const descriptionLines = doc.splitTextToSize(String(row.description || '—'), columns[0].width)
+    const descriptionLines = doc.splitTextToSize(String(row.description || '—'), descriptionWidth - 12)
     const height = Math.max(descriptionLines.length * 12, 18)
     doc.setDrawColor(220, 224, 228)
-    doc.line(tableLeft, currentY + height, tableLeft + 440, currentY + height)
+    doc.line(tableLeft, currentY + height, tableLeft + tableWidth, currentY + height)
 
     doc.setFontSize(9)
     doc.setTextColor(35, 35, 35)
     doc.text(descriptionLines, tableLeft + 8, currentY + 12)
-    doc.text(String(row.quantity ?? 0), tableLeft + 260, currentY + 12, { align: 'center' })
-    doc.text(String(row.unitPrice ?? '0,00'), tableLeft + 330, currentY + 12, { align: 'center' })
-    doc.text(String(row.amount ?? '0,00'), tableLeft + 440, currentY + 12, { align: 'right' })
+    doc.text(String(row.quantity ?? 0), quantityX, currentY + 12, { align: 'center' })
+    doc.text(String(row.unitPrice ?? '0 XAF'), unitPriceX, currentY + 12, { align: 'center' })
+    doc.text(String(row.amount ?? '0 XAF'), amountX - 8, currentY + 12, { align: 'right' })
 
     currentY += height + 8
   })

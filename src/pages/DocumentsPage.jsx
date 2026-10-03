@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Download, FileText, Plus, Search, Trash2, Upload, X } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { getClients } from '../services/clients'
@@ -188,6 +188,7 @@ function DocumentUploadForm({ clients, jobs, saving, onClose, onSubmit }) {
   const [clientId, setClientId] = useState('')
   const [jobId, setJobId] = useState('')
   const [error, setError] = useState('')
+  const fileInputRef = useRef(null)
 
   async function submit(event) {
     event.preventDefault()
@@ -215,10 +216,10 @@ function DocumentUploadForm({ clients, jobs, saving, onClose, onSubmit }) {
 
   return <div className="modal-backdrop"><section className="client-modal" role="dialog" aria-modal="true" aria-labelledby="document-form-title"><div className="modal-header"><div><p className="eyebrow">Nouveau fichier</p><h2 id="document-form-title">Ajouter un document</h2></div><button className="icon-button" type="button" aria-label="Fermer" onClick={onClose}><X size={20} /></button></div>
     <div className="client-form" style={{ display: 'grid', gap: 14 }}>
-      <label className="secondary-button" style={{ display: 'inline-flex', width: 'fit-content', cursor: 'pointer' }}>
+      <button className="secondary-button" type="button" onClick={() => fileInputRef.current?.click()} style={{ display: 'inline-flex', width: 'fit-content', cursor: 'pointer' }}>
         <Upload size={15} /> Sélectionner un fichier
-        <input type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,image/*,application/pdf" onChange={handleFileChange} style={{ display: 'none' }} />
-      </label>
+      </button>
+      <input ref={fileInputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,image/*,application/pdf" onChange={handleFileChange} aria-label="Sélectionner un document" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }} />
       {file && <p className="document-selected-file">{file.name} · {formatSize(file.size)}</p>}
       <form className="client-form" onSubmit={submit}>
         <label>Nom du document (facultatif)<input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={file?.name || 'Ex. Contrat signé'} /></label>
