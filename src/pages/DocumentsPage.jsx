@@ -204,15 +204,31 @@ function DocumentUploadForm({ clients, jobs, saving, onClose, onSubmit }) {
     if (!succeeded) setError('Le téléversement a échoué. Vérifiez le message affiché dans la page.')
   }
 
-  return <div className="modal-backdrop"><section className="client-modal" role="dialog" aria-modal="true" aria-labelledby="document-form-title"><div className="modal-header"><div><p className="eyebrow">Nouveau fichier</p><h2 id="document-form-title">Ajouter un document</h2></div><button className="icon-button" type="button" aria-label="Fermer" onClick={onClose}><X size={20} /></button></div><form className="client-form" onSubmit={submit}>
-    <label>Fichier *<input type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} required /></label>
-    {file && <p className="document-selected-file">{file.name} · {formatSize(file.size)}</p>}
-    <label>Nom du document (facultatif)<input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={file?.name || 'Ex. Contrat signé'} /></label>
-    <label>Client (facultatif)<select value={clientId} onChange={(event) => setClientId(event.target.value)}><option value="">Aucun client</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.company_name || client.name}</option>)}</select></label>
-    <label>Chantier (facultatif)<select value={jobId} onChange={(event) => setJobId(event.target.value)}><option value="">Aucun chantier</option>{jobs.map((job) => <option key={job.id} value={job.id}>{job.title}</option>)}</select></label>
-    {error && <p className="form-error" role="alert">{error}</p>}
-    <div className="modal-actions"><button className="secondary-button" type="button" onClick={onClose}>Annuler</button><button className="primary-button" type="submit" disabled={saving}><Upload size={15} /> {saving ? 'Téléversement...' : 'Téléverser'}</button></div>
-  </form></section></div>
+  function handleFileChange(event) {
+    const nextFile = event.target.files?.[0] ?? null
+    setFile(nextFile)
+    if (nextFile && !title) {
+      setTitle(nextFile.name.replace(/\.[^/.]+$/, '') || nextFile.name)
+    }
+    event.target.value = ''
+  }
+
+  return <div className="modal-backdrop"><section className="client-modal" role="dialog" aria-modal="true" aria-labelledby="document-form-title"><div className="modal-header"><div><p className="eyebrow">Nouveau fichier</p><h2 id="document-form-title">Ajouter un document</h2></div><button className="icon-button" type="button" aria-label="Fermer" onClick={onClose}><X size={20} /></button></div>
+    <div className="client-form" style={{ display: 'grid', gap: 14 }}>
+      <label className="secondary-button" style={{ display: 'inline-flex', width: 'fit-content', cursor: 'pointer' }}>
+        <Upload size={15} /> Sélectionner un fichier
+        <input type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,image/*,application/pdf" onChange={handleFileChange} style={{ display: 'none' }} />
+      </label>
+      {file && <p className="document-selected-file">{file.name} · {formatSize(file.size)}</p>}
+      <form className="client-form" onSubmit={submit}>
+        <label>Nom du document (facultatif)<input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={file?.name || 'Ex. Contrat signé'} /></label>
+        <label>Client (facultatif)<select value={clientId} onChange={(event) => setClientId(event.target.value)}><option value="">Aucun client</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.company_name || client.name}</option>)}</select></label>
+        <label>Chantier (facultatif)<select value={jobId} onChange={(event) => setJobId(event.target.value)}><option value="">Aucun chantier</option>{jobs.map((job) => <option key={job.id} value={job.id}>{job.title}</option>)}</select></label>
+        {error && <p className="form-error" role="alert">{error}</p>}
+        <div className="modal-actions"><button className="secondary-button" type="button" onClick={onClose}>Annuler</button><button className="primary-button" type="submit" disabled={saving}><Upload size={15} /> {saving ? 'Téléversement...' : 'Téléverser'}</button></div>
+      </form>
+    </div>
+  </section></div>
 }
 
 export default DocumentsPage
